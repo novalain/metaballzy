@@ -1,0 +1,30 @@
+{
+  "name": "metaballzy",
+  "version": "1.0.0",
+  "description": "Portfolio!",
+  "main": "lib/metaballzy.js",
+  "scripts": {
+    "build": "webpack -p",
+    "dev": "webpack-dev-server --progress --colors --watch"
+  },
+  "keywords": [
+    "webgl2"
+  ],
+  "author": "Michael Novén",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "css-loader": "^0.28.11",
+    "file-loader": "^1.1.11",
+    "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^0.21.0",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  },
+  "dependencies": {
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  }
+}
