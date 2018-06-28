@@ -1,8 +1,15 @@
+
+import cat from "./cat.jpg"
+
 const NUM_METABALLS = 10;
 
 const vertexSource = `#version 300 es
     layout(location = 0) in vec2 position;
+
+    out vec2 vUv;
+    
     void main() {
+        vUv = position;
         gl_Position = vec4(position, 0.0, 1.0);
     }
 `
@@ -15,12 +22,16 @@ const fragmentSource = `#version 300 es
     uniform float height;
     uniform int numMetaballs;
 
+    uniform sampler2D dummyTex;
+
     out vec4 outColor;
+    in vec2 vUv;
 
     void main(){ 
         float x = gl_FragCoord.x;
         float y = gl_FragCoord.y;
         float v = 0.0;
+
         for (int i = 0; i < ${NUM_METABALLS}; i++) {
             vec3 mb = metaballs[i];
             float dx = mb.x - x;
@@ -29,10 +40,11 @@ const fragmentSource = `#version 300 es
             v += r * r / (dx * dx + dy * dy);
         }
         if (v > 1.0) {
-            outColor = vec4(1.0, 1.0, 1.0, 1.0);//vec4(x / width, y / height, 0.0, 1.0);
+            outColor = texture(dummyTex, vUv); //vec4(x / width, y / height, 0.0, 1.0);
         } else {
             outColor = vec4(0.0, 0.0, 0.0, 1.0);
         }
+        outColor = texture(dummyTex, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
     }
 `
 
@@ -42,6 +54,7 @@ export default class MetaballsRenderer {
         const gl = this.context;
 
         console.log("Setting up renderer ...");
+        console.log("cat", cat);
 
         this.numMetaballs = NUM_METABALLS;
         gl.clearColor(1.0, 0.0, 0.0, 1.0);
@@ -75,6 +88,7 @@ export default class MetaballsRenderer {
         );
  
         this.setSize(window.innerWidth, window.innerHeight);
+        this._dummyTex = this._loadTexture(cat);
         this._spawnMetaballs();
     }
 
@@ -90,6 +104,38 @@ export default class MetaballsRenderer {
 
         this.width = gl.canvas.width;
         this.height = gl.canvas.height;
+    }
+
+    _loadTexture(url) {
+        const gl = this.context;
+
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+            width, height, border, srcFormat, srcType,
+            pixel);
+
+        const image = new Image();
+        image.onload = function () {
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        };
+        image.src = url;
+        return texture;
     }
 
     _spawnMetaballs() {
@@ -122,6 +168,12 @@ export default class MetaballsRenderer {
         const gl = this.context;
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.width, this.height);
+
+        
+        gl.activeTexture(gl.TEXTURE0 + 0);
+        gl.bindTexture(gl.TEXTURE_2D, this._dummyTex);
+        const location = gl.getUniformLocation(this.program, 'dummyTex');
+        gl.uniform1i(location, 0);
 
         // Step
         for (let i = 0; i < this.numMetaballs; i++) {

@@ -1,6 +1,6 @@
 import "./index.css"
-import cat from "./cat.jpg"
 import MetaballsRenderer from "./metaballsrenderer.js"
+import cat from "./cat.jpg"
 
 console.log("Hello app!")
 
@@ -8,6 +8,8 @@ console.log("Hello app!")
 const canvas = document.createElement('canvas')
 document.body.appendChild(canvas)
 
+///document.body.innerHTML = '<img src=' + cat + '/>'
+// Load resources
 // Fire away rendering
 const context = canvas.getContext('webgl2')
 const metaballsRenderer = new MetaballsRenderer(context)
