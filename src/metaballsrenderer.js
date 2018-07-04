@@ -1,13 +1,13 @@
 
 import cat from "./cat.jpg"
 
-const NUM_METABALLS = 10;
+const NUM_METABALLS = 5;
 
 const vertexSource = `#version 300 es
     layout(location = 0) in vec2 position;
 
     out vec2 vUv;
-    
+
     void main() {
         vUv = position;
         gl_Position = vec4(position, 0.0, 1.0);
@@ -27,7 +27,7 @@ const fragmentSource = `#version 300 es
     out vec4 outColor;
     in vec2 vUv;
 
-    void main(){ 
+    void main() {
         float x = gl_FragCoord.x;
         float y = gl_FragCoord.y;
         float v = 0.0;
@@ -40,11 +40,10 @@ const fragmentSource = `#version 300 es
             v += r * r / (dx * dx + dy * dy);
         }
         if (v > 1.0) {
-            outColor = texture(dummyTex, vUv); //vec4(x / width, y / height, 0.0, 1.0);
+            outColor = texture(dummyTex, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
         } else {
-            outColor = vec4(0.0, 0.0, 0.0, 1.0);
+            outColor = vec4(0.0, 1.0, 0.0, 1.0);
         }
-        outColor = texture(dummyTex, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
     }
 `
 
@@ -169,7 +168,6 @@ export default class MetaballsRenderer {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.viewport(0, 0, this.width, this.height);
 
-        
         gl.activeTexture(gl.TEXTURE0 + 0);
         gl.bindTexture(gl.TEXTURE_2D, this._dummyTex);
         const location = gl.getUniformLocation(this.program, 'dummyTex');
